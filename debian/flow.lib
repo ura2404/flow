@@ -4,6 +4,18 @@
 P=`which screen`
 [ -z $P ] && echo 'Error: packet screen is not installed".' && exit
 
+# check bzip2
+P=`which  bzip2`
+[ -z $P ] && echo 'Error: packet bzip2 is not installed".' && exit
+
+# check gawk
+P=`which  gawk`
+[ -z $P ] && echo 'Error: packet gawk is not installed".' && exit
+
+# check mutt
+P=`which  mutt`
+[ -z $P ] && echo 'Error: packet mutt is not installed".' && exit
+
 # ------------------------------------------------------------------------------
 function doIt(){
         awk -v LOW="$LOW" -v LOG="$LOG" 'BEGIN{
