@@ -1,0 +1,11 @@
+#!/bin/bash
+
+[[ ! -f flow.lib ]] || [[ ! -f flow.cfg ]] && echo "Error: configure file isn't find or invalid startup directory." && exit
+
+SID="FLOW by ura@itx.ru"
+
+SRC=`which screen`
+[ -z $SRC ] && echo 'screen not found' && exit
+
+INS=`ps aux | grep $SID | grep -v 'grep'`
+[ -z "$INS" ] && $SRC -dmS $SID flow.bash

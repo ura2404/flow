@@ -1,0 +1,46 @@
+#!/bin/bash
+# ------------------------------------------------------------------------------
+# check screen
+P=`which screen`
+[ -z $P ] && echo 'Error: packet screen is not installed".' && exit
+
+# ------------------------------------------------------------------------------
+function doIt(){
+        awk -v LOW="$LOW" -v LOG="$LOG" 'BEGIN{
+            N = 0;      # mode: 0 - ignoring data, 1 - data analysis
+                        # turns on automatically when a data value falls within the measured range
+            TS = "0";   # timestamp for log
+            TSS = 0;    # timestamp counter (timestamp suffix)
+        }
+        function clog(ts,tss,data){
+            _TSS = substr((1000 + tss),2);
+            if(data){
+                Cmd = "echo "strftime("%Y-%m-%d_%H-%M-%S")" "data" >> "LOG"/"ts"-"_TSS".log_";
+            }
+            else{
+                 Cmd = "mv "LOG"/"ts"-"_TSS".log_ "LOG"/"ts"-"_TSS".log 2>/dev/null";
+            }
+            Cmd | getline var;
+            close(Cmd);
+        }
+        {
+            if($2 >= LOW && !N){
+                N = 1;                                # begin analisys mode
+                NTS = strftime("%Y-%m-%d_%H-%M-%S");  # new TS
+                TSS = (TS != NTS ? 0 : TSS+1);        # if new TS = current TS then increment suffix else reset suffix
+                TS = NTS;                             #
+            }
+
+            if($2 < LOW && N){
+                N = 0;         # stop analisys mode
+                clog(TS,TSS);  # finish log file
+            }
+
+            #match($0,/^[-+]?[0-9]*[.,]?[0-9]+(?:[eE][-+]?[0-9]+)?$/))
+            if(N == 1 && match($2,/^[-+]?[0-9]+?$/)){         # checking that the data is a number
+                clog(TS,TSS,$2);                              # create or continue log file
+            }
+
+            print strftime("%Y-%m-%d_%H-%M-%S")" "$0;         # show data
+        }'
+}

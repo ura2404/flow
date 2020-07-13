@@ -1,0 +1,10 @@
+#!/bin/bash
+
+[[ ! -f flow.lib ]] || [[ ! -f flow.cfg ]] && echo "Error: configure file isn't find or invalid startup directory." && exit
+
+SID="FLOW by ura@itx.ru"
+
+INS=`ps aux | grep $SID | grep -v 'grep'`
+PID=`echo $INS | awk '{ print $2}'`
+
+[ -n "$INS" ] && kill $PID

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+## -----------------------------------------------------------------------------
+# clog parser
+# *.clog -> *.pre
+#
+[[ ! -f flow.lib ]] || [[ ! -f flow.cfg ]] && echo "Error: configure file isn't find or invalid startup directory." && exit
+
+. ./flow.cfg
+
+[ ! -d $LOG ] && echo 'clog folder not found' && exit
+
+PHP=`which php`
+[ -z $PHP ] && echo 'PHP not found' && exit
+
+ls $LOG | while read b; do \
+    echo $b | sed -e 's/\.[^.]*$//' | while read a; do \
+        [ -f $LOG/$a.pre ] || $PHP -f bin/parser.php $LOG/$a.log
+    done
+done
