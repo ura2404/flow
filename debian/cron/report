@@ -1,12 +1,13 @@
 #!/bin/bash
 
 ## -----------------------------------------------------------------------------
-# prepare email
+# prepare report
 # *.pre -> *.email
 #
 [[ ! -f flow.lib ]] || [[ ! -f flow.cfg ]] && echo "Error: configure file isn't find or invalid startup directory." && exit
 
 . flow.cfg
+. flow.lib
 
 [ `ls $LOG/*.ski 2>/dev/null | wc -l` -eq 0 ] || ls $LOG/*.ski | while read b; do \
     echo $b | sed -e 's/\.[^.]*$//' | while read a; do \
@@ -43,12 +44,46 @@ find * -maxdepth 0 -type d 2>/dev/null | sed 's|.*/||' | while read b; do \
     cat $b/*.pre >> $b.body
     tar -cjf $b.tar.bz2 $b > /dev/null 2>&1
 
-    cat $b.body | mutt -s "$SUBJ // $b" $EMAIL -a $b.tar.bz2 && (
-        bzip2 -z $b.body
-        mv $b.{body.bz2,tar.bz2} $BACKUP
-        rm -dr $b
-        echo 'email: '$b' - ok'
+    report $b && (
+            echo "$REPORT $b success"
+            bzip2 -z $b.body
+            mv $b.{body.bz2,tar.bz2} $BACKUP
+            rm -dr $b
+            rm -f $b.{body,tar.bz2}
+    ) || (
+            echo "$REPORT $b error"
     )
+
+#    if [ "$REPORT" == "ftp" ]; then
+#        ftp $b && (
+#            echo "ftp $b ok"
+#            bzip2 -z $b.body
+#            mv $b.{body.bz2,tar.bz2} $BACKUP
+#            rm -dr $b
+#            rm -f $b.{body,tar.bz2}
+#        ) || (
+#            echo "ftp $b error"
+#        )
+#    fi
+
+#    if [ "$REPORT" == "email" ]; then
+#        email $b && (
+#            echo "email $b ok"
+#            bzip2 -z $b.body
+#            mv $b.{body.bz2,tar.bz2} $BACKUP
+#            rm -dr $b
+#            rm -f $b.{body,tar.bz2}
+#        ) || (
+#            echo "email $b error"
+#        )
+#    fi
+
+#    cat $b.body | mutt -s "$SUBJ // $b" $EMAIL -a $b.tar.bz2 && (
+#        bzip2 -z $b.body
+#        mv $b.{body.bz2,tar.bz2} $BACKUP
+#        rm -dr $b
+#        echo 'email: '$b' - ok'
+#    )
 
 done
 cd $PWD

@@ -2,19 +2,27 @@
 # ------------------------------------------------------------------------------
 # check screen
 P=`which screen`
-[ -z $P ] && echo 'Error: packet screen is not installed".' && exit
+[ -z $P ] && echo 'Error: packet screen is not installed.' && exit
 
 # check bzip2
 P=`which  bzip2`
-[ -z $P ] && echo 'Error: packet bzip2 is not installed".' && exit
+[ -z $P ] && echo 'Error: packet bzip2 is not installed.' && exit
 
 # check gawk
 P=`which  gawk`
-[ -z $P ] && echo 'Error: packet gawk is not installed".' && exit
+[ -z $P ] && echo 'Error: packet gawk is not installed.' && exit
 
-# check mutt
-P=`which  mutt`
-[ -z $P ] && echo 'Error: packet mutt is not installed".' && exit
+if [ "$REPORT" == "email" ]; then
+    # check mutt
+    P=`which  mutt`
+    [ -z $P ] && echo 'Error: packet mutt is not installed.' && exit
+fi
+
+if [ "$REPORT" == "ftp" ]; then
+    # check ftp
+    P=`which  ftp`
+    [ -z $P ] && echo 'Error: packet ftp is not installed.' && exit
+fi
 
 # ------------------------------------------------------------------------------
 function doIt(){
@@ -55,4 +63,59 @@ function doIt(){
 
             print strftime("%Y-%m-%d_%H-%M-%S")" "$0;         # show data
         }'
+}
+
+# ------------------------------------------------------------------------------
+#function ftp(){
+#    echo "ftp -i -n $FTP_HOST << EOF" > $TMP/ftp.bash
+#    echo "user $FTP_USER $FTP_PASS" >> $TMP/ftp.bash
+#    echo "binary" >> $TMP/ftp.bash
+#    echo "cd $FTP_FOLDER" >> $TMP/ftp.bash
+#    echo "put $1.body" >> $TMP/ftp.bash
+#    echo "put $1.tar.bz2" >> $TMP/ftp.bash
+#    echo "quit" >> $TMP/ftp.bash
+#    echo "EOF" >> $TMP/ftp.bash
+#
+#    bash $TMP/ftp.bash
+#    RET = $?
+#
+#    rm -f $TMP/ftp.bash
+#    return $RET
+#}
+
+# ------------------------------------------------------------------------------
+#function email(){
+#    cat $b.body | mutt -s "$SUBJ // $b" $EMAIL -a $b.tar.bz2 && (
+#        bzip2 -z $b.body
+#        mv $b.{body.bz2,tar.bz2} $BACKUP
+#        rm -dr $b
+#        echo 'email: '$b' - ok'
+#    )
+#}
+
+# ------------------------------------------------------------------------------
+function report(){
+    if [ "$REPORT" == "ftp" ]; then
+        echo "ftp -i -n $FTP_HOST << EOF" > $TMP/ftp.bash
+        echo "user $FTP_USER $FTP_PASS" >> $TMP/ftp.bash
+        echo "binary" >> $TMP/ftp.bash
+        echo "cd $FTP_FOLDER" >> $TMP/ftp.bash
+        echo "put $1.body" >> $TMP/ftp.bash
+        echo "put $1.tar.bz2" >> $TMP/ftp.bash
+        echo "quit" >> $TMP/ftp.bash
+        echo "EOF" >> $TMP/ftp.bash
+
+        bash $TMP/ftp.bash
+        RET=$?
+
+        rm -f $TMP/ftp.bash
+        return $RET
+    fi
+
+    if [ "$REPORT" == "email" ]; then
+        cat $1.body | mutt -s "$EMAIL_SUBJ // $b" $EMAIL_ADDR -a $1.tar.bz2
+echo '>'$?'<'
+        RET=$?
+        return $RET
+    fi
 }
